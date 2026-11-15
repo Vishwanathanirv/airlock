@@ -73,7 +73,7 @@ export const PATTERNS: Pattern[] = [
     label: "PASSWORD",
     category: "secret",
     severity: "high",
-    re: /\b(?:password|passwd|pwd|secret|api[_-]?key|token)\s*[:=]\s*["']?([^\s"']{8,})["']?/gi,
+    re: /(?<![A-Za-z])(?:password|passwd|pwd|secret|api[_-]?key|token)\s*[:=]\s*["']?([^\s"']{8,})["']?/gi,
     valid: (m) => entropy(m.split(/[:=]/).slice(1).join("=").trim().replace(/^["']|["']$/g, "")) >= 3,
     why: "A password or key written out in the text.",
   },

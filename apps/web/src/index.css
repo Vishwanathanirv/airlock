@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+/*
+ * Airlock is a security checkpoint for prompts. Navigation is airport wayfinding (yellow on
+ * charcoal), messages are bags on a belt, and scanned text is shown the way a baggage X-ray
+ * shows contents: false colour on a pale screen. Orange: an attack. Blue: secrets and personal
+ * data. Green: hidden or disguised text. Red: something trying to leave.
+ */
+:root {
+  --bg: #e8ebee;
+  --panel: #f8f9fa;
+  --panel-2: #eef1f3;
+  --line: #cfd5da;
+  --ink: #15191c;
+  --muted: #4d565e;
+  --faint: #7e8890;
+  --sign: #1d2124;
+  --sign-ink: #ffcc00;
+  --sign-soft: #fff4c2;
+  --screen: #eef5fb;
+  --screen-ink: #26323b;
+  --bezel: #2a3036;
+  --x-attack: #f08a24;
+  --x-attack-bg: rgba(240, 138, 36, 0.24);
+  --x-data: #2f6fde;
+  --x-data-bg: rgba(47, 111, 222, 0.18);
+  --x-hidden: #2e9e57;
+  --x-hidden-bg: rgba(46, 158, 87, 0.2);
+  --x-out: #d0312d;
+  --x-out-bg: rgba(208, 49, 45, 0.16);
+  --go: #1e9e4a;
+  --stop: #d0312d;
+  --hold: #d98e00;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121518;
+    --panel: #1a1e22;
+    --panel-2: #20252a;
+    --line: #2f363c;
+    --ink: #e7eaed;
+    --muted: #a3abb3;
+    --faint: #6f7881;
+    --sign: #0b0d0f;
+    --sign-soft: #2a2610;
+    --screen: #0d1820;
+    --screen-ink: #d6e2ea;
+    --bezel: #050607;
+    --x-attack-bg: rgba(240, 138, 36, 0.3);
+    --x-data: #6f9cff;
+    --x-data-bg: rgba(111, 156, 255, 0.22);
+    --x-hidden: #4fd17f;
+    --x-hidden-bg: rgba(79, 209, 127, 0.2);
+    --x-out: #ff6b66;
+    --x-out-bg: rgba(255, 107, 102, 0.2);
+    color-scheme: dark;
+  }
+}
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-sign: var(--sign);
+  --color-sign-ink: var(--sign-ink);
+  --color-go: var(--go);
+  --color-stop: var(--stop);
+  --color-hold: var(--hold);
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+}
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  /* An overhead sign: yellow on charcoal, big and plain. */
+  .sign {
+    background: var(--sign);
+    color: var(--sign-ink);
+    font-weight: 700;
+    letter-spacing: 0.005em;
+  }
+  /* The scanner screen: false-colour text on a pale field inside a heavy bezel. */
+  .xray {
+    background: var(--screen);
+    color: var(--screen-ink);
+    border: 10px solid var(--bezel);
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 0 40px rgba(47, 111, 222, 0.08);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .x-attack {
+    background: var(--x-attack-bg);
+    box-shadow: inset 0 -2px 0 var(--x-attack);
+    border-radius: 2px;
+  }
+  .x-data {
+    background: var(--x-data-bg);
+    box-shadow: inset 0 -2px 0 var(--x-data);
+    border-radius: 2px;
+  }
+  .x-hidden {
+    background: var(--x-hidden-bg);
+    box-shadow: inset 0 -2px 0 var(--x-hidden);
+    border-radius: 2px;
+  }
+  .x-out {
+    background: var(--x-out-bg);
+    box-shadow: inset 0 -2px 0 var(--x-out);
+    border-radius: 2px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    height: 2.4rem;
+    padding: 0 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn:hover:not(:disabled) {
+    border-color: var(--ink);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-sign {
+    background: var(--sign);
+    border-color: var(--sign);
+    color: var(--sign-ink);
+  }
+  .field {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+  }
+  .field:focus {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+}
+:focus-visible {
+  outline: 2px solid var(--sign-ink);
+  outline-offset: 2px;
+}
+
+/* The belt: a bag rides through the scanner once when a message is sent. */
+@keyframes belt {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+.belt-bag {
+  animation: belt 0.9s cubic-bezier(0.4, 0, 0.3, 1) forwards;
+}
+@keyframes beam {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.beam {
+  animation: beam 0.9s ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .belt-bag,
+  .beam {
+    animation: none;
+  }
+}

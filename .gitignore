@@ -7,3 +7,4 @@ dist/
 test-results/
 playwright-report/
 *.log
+apps/web/public/classifier.json

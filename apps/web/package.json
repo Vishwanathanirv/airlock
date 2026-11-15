@@ -1,0 +1,28 @@
+{
+  "name": "@airlock/web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../scripts/copy-model.mjs && vite",
+    "build": "node ../../scripts/copy-model.mjs && vite build",
+    "preview": "vite preview",
+    "build:demo": "node ../../scripts/copy-model.mjs && vite build"
+  },
+  "dependencies": {
+    "@airlock/core": "*",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^7.18.5"
+  },
+  "devDependencies": {
+    "@fontsource-variable/hanken-grotesk": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.3.5",
+    "vite": "^6.4.6"
+  }
+}

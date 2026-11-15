@@ -1,41 +1,47 @@
 {
-  "generatedAt": "2026-11-15T05:58:58.583Z",
+  "generatedAt": "2026-11-15T06:07:31.254Z",
   "sizes": {
-    "trainRows": 5160,
+    "trainRows": 5557,
     "testAttacks": 416,
     "testBenign": 416,
     "disguisedAttacks": 576
   },
   "summary": {
     "attacksCaught": 1,
-    "attacksBlocked": 0.93,
-    "disguisedCaught": 0.995,
+    "attacksBlocked": 0.909,
+    "disguisedCaught": 0.997,
     "benignFlagged": 0,
     "benignBlocked": 0,
     "heldOutBenignFlagged": 0
   },
   "byFamily": {
     "indirect": {
-      "n": 128,
-      "rules": 0.859,
+      "n": 95,
+      "rules": 0.811,
       "classifier": 1,
       "firewall": 1
     },
     "leak": {
-      "n": 49,
-      "rules": 0.531,
+      "n": 41,
+      "rules": 0.585,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "exfil": {
+      "n": 44,
+      "rules": 0.545,
       "classifier": 1,
       "firewall": 1
     },
     "override": {
-      "n": 218,
-      "rules": 0.381,
+      "n": 194,
+      "rules": 0.366,
       "classifier": 1,
       "firewall": 1
     },
     "jailbreak": {
-      "n": 5,
-      "rules": 0.6,
+      "n": 26,
+      "rules": 0.769,
       "classifier": 1,
       "firewall": 1
     },
@@ -67,15 +73,15 @@
     },
     "base64": {
       "n": 96,
-      "rules": 0.323,
-      "classifier": 0.021,
+      "rules": 0.406,
+      "classifier": 0.292,
       "firewall": 1
     },
     "leet": {
       "n": 96,
-      "rules": 0.188,
-      "classifier": 0.99,
-      "firewall": 0.99
+      "rules": 0.167,
+      "classifier": 1,
+      "firewall": 1
     },
     "tag-smuggling": {
       "n": 96,
@@ -85,9 +91,9 @@
     }
   },
   "latencyMs": {
-    "p50": 0.101,
-    "p95": 0.311,
-    "p99": 0.403
+    "p50": 0.1,
+    "p95": 0.303,
+    "p99": 0.5
   },
   "falseAlarms": [],
   "misses": []
