@@ -1,0 +1,94 @@
+{
+  "generatedAt": "2026-11-15T05:58:58.583Z",
+  "sizes": {
+    "trainRows": 5160,
+    "testAttacks": 416,
+    "testBenign": 416,
+    "disguisedAttacks": 576
+  },
+  "summary": {
+    "attacksCaught": 1,
+    "attacksBlocked": 0.93,
+    "disguisedCaught": 0.995,
+    "benignFlagged": 0,
+    "benignBlocked": 0,
+    "heldOutBenignFlagged": 0
+  },
+  "byFamily": {
+    "indirect": {
+      "n": 128,
+      "rules": 0.859,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "leak": {
+      "n": 49,
+      "rules": 0.531,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "override": {
+      "n": 218,
+      "rules": 0.381,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "jailbreak": {
+      "n": 5,
+      "rules": 0.6,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "never seen in training": {
+      "n": 16,
+      "rules": 0.25,
+      "classifier": 1,
+      "firewall": 1
+    }
+  },
+  "byDisguise": {
+    "zero-width": {
+      "n": 96,
+      "rules": 1,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "homoglyph": {
+      "n": 96,
+      "rules": 1,
+      "classifier": 1,
+      "firewall": 1
+    },
+    "spaced": {
+      "n": 96,
+      "rules": 0.302,
+      "classifier": 0.979,
+      "firewall": 0.979
+    },
+    "base64": {
+      "n": 96,
+      "rules": 0.323,
+      "classifier": 0.021,
+      "firewall": 1
+    },
+    "leet": {
+      "n": 96,
+      "rules": 0.188,
+      "classifier": 0.99,
+      "firewall": 0.99
+    },
+    "tag-smuggling": {
+      "n": 96,
+      "rules": 1,
+      "classifier": 0.958,
+      "firewall": 1
+    }
+  },
+  "latencyMs": {
+    "p50": 0.101,
+    "p95": 0.311,
+    "p99": 0.403
+  },
+  "falseAlarms": [],
+  "misses": []
+}
