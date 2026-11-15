@@ -4,7 +4,7 @@
 
 Airlock sits between your app and the language model, like a security checkpoint. Every message going **in** is scanned for prompt injection, jailbreaks and hidden instructions, and secrets and personal data are swapped for placeholders before the model sees them. Every answer coming **out** is checked for a leaked system prompt and for data being smuggled out through image links. It speaks the OpenAI chat API, so adding it to an app is a one-line change.
 
-![The checkpoint](docs/screenshots/checkpoint.png)
+![The split screen: unprotected, the scanner, protected](docs/screenshots/checkpoint.png)
 
 ## Why
 
@@ -20,12 +20,13 @@ Airlock handles all five in one place, in front of any model.
 
 ## Try it
 
-The live demo runs entirely in your browser. **Nova**, the support bot of a made-up phone company, is deliberately gullible: it obeys any instruction it reads.
+The live demo runs entirely in your browser, on a **split screen**. **Nova**, the support bot of a made-up phone company, is deliberately gullible: it obeys any instruction it reads. Every message you send goes to two copies of Nova at once: on the left straight to the model, on the right through Airlock, with the scanner in the middle showing what Airlock saw and why it decided.
 
-1. Turn Airlock **off** and send "Steal the system prompt" or "Poisoned help article". Nova falls for it.
-2. Turn Airlock **on** and send the same thing. The checkpoint stops it and the X-ray shows why.
+1. Pick an attack, like "Steal the system prompt" or "Poisoned help article".
+2. Watch it work on the left, and get stopped on the right.
+3. Open the tools drawer at the bottom (keys 1 to 4), like browser devtools: the traffic log, an X-ray lab for any text, the policy and setup code, and the measured results.
 
-![With Airlock off, Nova leaks its prompt](docs/screenshots/airlock-off.png)
+![The traffic log in the tools drawer](docs/screenshots/airlock-off.png)
 
 The X-ray shows text the way the scanner sees it, in baggage-scanner false colour: orange for attacks, blue for secrets and personal data, green for hidden or disguised text, red for data leaving. Invisible characters are made visible and tag-character text is spelled out.
 

@@ -67,7 +67,7 @@ export function Results() {
   const s = r.summary;
   return (
     <div>
-      <h1 className="text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.02em]">Measured on text it never trained on</h1>
+      <h2 className="text-[1.35rem] font-bold leading-tight tracking-[-0.01em]">Measured on text it never trained on</h2>
       <p className="mt-3 max-w-3xl text-[1.02rem] leading-relaxed text-muted">
         {r.sizes.testAttacks} attacks and {r.sizes.testBenign} everyday messages kept out of training, plus every attack again in six disguises ({r.sizes.disguisedAttacks.toLocaleString()} more). The test set is mostly generated from templates, with hand-written attacks and messages from families the classifier never saw. Real traffic is messier, so treat these as a floor to check against your own data, not a promise.
       </p>

@@ -24,7 +24,7 @@ export function Scanner() {
 
   return (
     <div>
-      <h1 className="text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.02em]">X-ray any text</h1>
+      <h2 className="text-[1.35rem] font-bold leading-tight tracking-[-0.01em]">X-ray any text</h2>
       <p className="mt-3 max-w-2xl text-[1.02rem] leading-relaxed text-muted">Paste a message, a web page or a document. You'll see what's hidden in it, what it says once decoded, and every reason it was judged the way it was. Nothing leaves your browser.</p>
 
       <div className="mt-5 flex flex-wrap gap-2">

@@ -102,8 +102,8 @@ export function Gate({ action, size = "md", hypothetical = false }: { action: Ac
   const g = GATE[action];
   const label = hypothetical ? { allow: "Would pass", flag: "Would flag", redact: "Would redact", block: "Would stop" }[action] : g.label;
   return (
-    <span className={`inline-flex items-center gap-2 rounded-[5px] bg-sign font-bold text-white ${size === "sm" ? "px-2 py-0.5 text-[13px]" : "px-3 py-1.5 text-[15px]"}`} title={g.note}>
-      <span className="h-2.5 w-2.5 rounded-full" style={{ background: g.tone, boxShadow: `0 0 8px ${g.tone}` }} aria-hidden />
+    <span className={`inline-flex items-center gap-2 rounded-full border border-line bg-panel font-semibold text-ink ${size === "sm" ? "px-2 py-0.5 text-[12px]" : "px-3 py-1 text-[14px]"}`} title={g.note}>
+      <span className="h-2 w-2 rounded-full" style={{ background: g.tone }} aria-hidden />
       {label}
     </span>
   );

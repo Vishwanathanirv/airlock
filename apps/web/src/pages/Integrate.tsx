@@ -36,7 +36,7 @@ export function Integrate() {
 
   return (
     <div>
-      <h1 className="text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.02em]">Put it in front of your app</h1>
+      <h2 className="text-[1.35rem] font-bold leading-tight tracking-[-0.01em]">Put it in front of your app</h2>
       <p className="mt-3 max-w-2xl text-[1.02rem] leading-relaxed text-muted">
         Airlock speaks the OpenAI chat API. Change your app's base URL to Airlock and every request and answer goes through the checkpoint. It works with OpenAI, Gemini's OpenAI-compatible endpoint, Groq, a local Ollama, or anything else with the same API.
       </p>
