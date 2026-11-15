@@ -3,7 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "Airlock: a firewall for LLM apps. Stops prompt injection (direct, hidden and indirect), redacts secrets and personal data, and catches system-prompt leaks and data exfiltration in model output.",
-  "author": "Vishwanathan R <mail@vishwanathan.dev> (https://vishwanathan.dev)",
   "license": "MIT",
   "type": "module",
   "workspaces": [

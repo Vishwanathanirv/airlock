@@ -134,9 +134,6 @@ function Shell() {
         <a href="https://github.com/Vishwanathanirv/llm-firewall" className="hidden text-sm font-semibold text-muted hover:text-ink sm:block">
           Source
         </a>
-        <a href="https://vishwanathan.dev" className="hidden text-sm text-faint hover:text-ink lg:block">
-          by Vishwanathan R
-        </a>
       </header>
 
       <main className="min-h-0">
@@ -193,11 +190,7 @@ function Shell() {
               <Route path="/results" element={<Results />} />
             </Routes>
             <p className="mt-8 text-xs text-faint">
-              Built by{" "}
-              <a href="https://vishwanathan.dev" className="text-muted underline underline-offset-4">
-                Vishwanathan R
-              </a>
-              . Northwind Telecom and Nova are made up. Everything here runs in your browser.
+              Northwind Telecom and Nova are made up. Everything here runs in your browser.
             </p>
           </div>
         )}

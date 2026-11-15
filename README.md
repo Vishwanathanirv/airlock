@@ -1,6 +1,5 @@
 # Airlock · A firewall for LLM apps
 
-> Built by [Vishwanathan R](https://vishwanathan.dev) · [Portfolio](https://vishwanathan.dev) · [Resume](https://vishwanathan.dev/resume.pdf)
 
 Airlock sits between your app and the language model, like a security checkpoint. Every message going **in** is scanned for prompt injection, jailbreaks and hidden instructions, and secrets and personal data are swapped for placeholders before the model sees them. Every answer coming **out** is checked for a leaked system prompt and for data being smuggled out through image links. It speaks the OpenAI chat API, so adding it to an app is a one-line change.
 
