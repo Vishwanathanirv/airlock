@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-19T13:49:59.429Z",
-  "commit": "ccd056a",
+  "generatedAt": "2026-11-19T14:07:57.564Z",
+  "commit": "261f139",
   "split": "test",
   "detectedMeans": "blocked, or an attack finding reported (flagged)",
   "datasets": [
@@ -361,9 +361,9 @@
     }
   },
   "latencyMs": {
-    "p50": 0.075,
-    "p95": 2.196,
-    "p99": 5.478
+    "p50": 0.065,
+    "p95": 1.897,
+    "p99": 4.694
   },
   "unavailable": []
 }
