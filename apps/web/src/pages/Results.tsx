@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { RealResults } from "./RealResults";
 
 type Row = { n: number; rules: number | null; classifier: number | null; firewall: number | null };
 type Report = {
@@ -54,7 +55,7 @@ function Compare({ title, rows, names }: { title: string; rows: Record<string, R
   );
 }
 
-export function Results() {
+function SyntheticResults() {
   const [r, setR] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -67,9 +68,12 @@ export function Results() {
   const s = r.summary;
   return (
     <div>
-      <h2 className="text-[1.35rem] font-bold leading-tight tracking-[-0.01em]">Measured on text it never trained on</h2>
+      <div className="flex flex-wrap items-baseline gap-3">
+        <h2 className="text-[1.35rem] font-bold leading-tight tracking-[-0.01em]">Synthetic test set</h2>
+        <span className="rounded-[4px] border border-[var(--hold)] px-1.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--hold)]">synthetic</span>
+      </div>
       <p className="mt-3 max-w-3xl text-[1.02rem] leading-relaxed text-muted">
-        {r.sizes.testAttacks} attacks and {r.sizes.testBenign} everyday messages kept out of training, plus every attack again in six disguises ({r.sizes.disguisedAttacks.toLocaleString()} more). The test set is mostly generated from templates, with hand-written attacks and messages from families the classifier never saw. Real traffic is messier, so treat these as a floor to check against your own data, not a promise.
+        {r.sizes.testAttacks} attacks and {r.sizes.testBenign} everyday messages kept out of training, plus every attack again in six disguises ({r.sizes.disguisedAttacks.toLocaleString()} more). This set is made up: generated from templates, plus a few hand-written messages. It is useful for checking each disguise and attack family, but it is much easier than real traffic. Compare the real-data numbers above.
       </p>
 
       <div className="mt-6 grid gap-px overflow-hidden rounded-[6px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-5">
@@ -128,6 +132,17 @@ export function Results() {
           Generated {new Date(r.generatedAt).toLocaleString()} from {r.sizes.trainRows.toLocaleString()} training rows. Reproduce with <code>npm run train && npm run evaluate</code>.
         </p>
       </section>
+    </div>
+  );
+}
+
+export function Results() {
+  return (
+    <div>
+      <RealResults />
+      <div className="mt-12 border-t border-dashed border-line pt-8">
+        <SyntheticResults />
+      </div>
     </div>
   );
 }

@@ -4,5 +4,5 @@
   "buildCommand": "npm run build:demo",
   "outputDirectory": "apps/web/dist",
   "framework": null,
-  "rewrites": [{ "source": "/((?!assets/|classifier\\.json|evaluation\\.json|favicon\\.svg).*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!assets/|classifier\\.json|evaluation\\.json|benchmark\\.json|favicon\\.svg).*)", "destination": "/index.html" }]
 }

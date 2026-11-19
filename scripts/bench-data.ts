@@ -33,6 +33,7 @@ const JAILBREAKHUB = "4f4031bf8be187f4478c7f94f42b08714722c12e";
 const TENSOR_TRUST = "747a75e096761ebc01bd3970158827326b4add23";
 const ALPACA = "761dc5bfbdeeffa89b8bff5d038781a4055f796a";
 const BIPIA = "a004b69ec0dd446e0afd461d98cb5e96e120a5d0";
+const SELF_INSTRUCT = "0b26ccaa415992100fa32df62d41b994cf928e23";
 
 /** RFC 4180 CSV, enough for quoted fields with commas, quotes and newlines. */
 export function parseCsv(text: string): Record<string, string>[] {
@@ -139,6 +140,24 @@ export const DATASETS: Dataset[] = [
     load: (f) => [...jsonl(f.email), ...jsonl(f.table)].map((r) => ({ dataset: "bipia-context", text: clean(String(r.context)), label: 0, source: "context", group: clean(String(r.context)) })),
   },
 ];
+
+/**
+ * Used only to train the classifier, never measured: everyday instructions with a licence that
+ * allows it, so the model stops mistaking any instruction for an attack.
+ */
+export const SELF_INSTRUCT_DATA: Dataset = {
+  id: "self-instruct",
+  name: "Self-Instruct 82K instructions",
+  home: "https://github.com/yizhongw/self-instruct",
+  licence: "Apache-2.0",
+  note: "Model-generated everyday instructions (the method Alpaca later copied). Training only. Any instruction that also appears in Alpaca is removed first.",
+  files: { data: { url: `${GH}/yizhongw/self-instruct/${SELF_INSTRUCT}/data/gpt3_generations/batch_221203/all_instances_82K.jsonl`, sha256: "d9223a1ce9efb36566100a03d569252becab4592e79c12f07d7e1627d174d75a" } },
+  load: (f) =>
+    jsonl(f.data).map((r) => {
+      const text = clean(r.input ? `${r.instruction}\n\n${r.input}` : String(r.instruction));
+      return { dataset: "self-instruct", text, label: 0, source: "user", group: clean(String(r.instruction)).toLowerCase() };
+    }),
+};
 
 const CACHE = resolve(process.cwd(), ".cache/bench");
 

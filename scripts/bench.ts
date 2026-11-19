@@ -102,6 +102,9 @@ const pct = (p: number) => (times.length ? +times[Math.floor((times.length - 1) 
 let commit = "unknown";
 try {
   commit = execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  // Changes to anything but the reports themselves mean the code measured is not exactly that commit.
+  const dirty = execSync("git status --porcelain", { stdio: ["ignore", "pipe", "ignore"] }).toString().split("\n").filter((l) => l.trim() && !/(benchmark|baseline)\.json$/.test(l));
+  if (dirty.length) commit += " + uncommitted changes";
 } catch {
   /* not a git checkout */
 }
