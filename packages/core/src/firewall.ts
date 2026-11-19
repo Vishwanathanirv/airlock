@@ -151,6 +151,26 @@ const hostOf = (url: string) => {
 };
 const allowed = (host: string, list: string[]) => list.some((d) => host === d || host.endsWith(`.${d}`));
 
+type Link = { image: boolean; url: string; start: number; end: number };
+
+/**
+ * Every link and image in a markdown or HTML answer: inline `![](url)` and `[](url)`, reference
+ * style `![alt][ref]` with `[ref]: url` defined elsewhere (also rendered by chat UIs), and `<img>`.
+ */
+export function linksIn(answer: string): Link[] {
+  const out: Link[] = [];
+  for (const m of answer.matchAll(/(!?)\[([^\]]*)\]\(\s*<?(https?:\/\/[^)\s>]+)>?[^)]*\)|<img[^>]+src\s*=\s*["']?(https?:\/\/[^"'\s>]+)/gi))
+    out.push({ image: m[1] === "!" || Boolean(m[4]), url: m[3] ?? m[4], start: m.index!, end: m.index! + m[0].length });
+  const refs = new Map<string, string>();
+  for (const m of answer.matchAll(/^[ \t]{0,3}\[([^\]]+)\]:[ \t]*<?(https?:\/\/[^\s>]+)>?/gim)) refs.set(m[1].trim().toLowerCase(), m[2]);
+  if (refs.size)
+    for (const m of answer.matchAll(/(!?)\[([^\]]*)\](?:\[([^\]]*)\])?(?![(:])/g)) {
+      const url = refs.get((m[3] || m[2]).trim().toLowerCase());
+      if (url) out.push({ image: m[1] === "!", url, start: m.index!, end: m.index! + m[0].length });
+    }
+  return out;
+}
+
 export function inspectOutput(answer: string, ctx: { system?: string; canary?: string; policy?: Policy; vault?: Vault }): Verdict {
   const t0 = performance.now();
   const policy = ctx.policy ?? DEFAULT_POLICY;
@@ -165,9 +185,7 @@ export function inspectOutput(answer: string, ctx: { system?: string; canary?: s
     if (overlap >= 0.2) findings.push({ detector: "leak.overlap", category: "prompt-leak", severity: overlap >= 0.4 ? "critical" : "high", evidence: `${Math.round(overlap * 100)}% of the system prompt`, why: `The answer repeats ${Math.round(overlap * 100)}% of the system prompt's phrasing.`, confidence: Math.min(1, overlap * 2) });
   }
 
-  for (const m of answer.matchAll(/(!?)\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)|<img[^>]+src=["'](https?:\/\/[^"']+)["']/gi)) {
-    const image = m[1] === "!" || Boolean(m[4]);
-    const url = m[3] ?? m[4];
+  for (const { image, url, start, end } of linksIn(answer)) {
     const host = hostOf(url);
     if (!host || allowed(host, policy.allowedDomains)) continue;
     const query = url.split("?")[1] ?? "";
@@ -177,7 +195,7 @@ export function inspectOutput(answer: string, ctx: { system?: string; canary?: s
       detector: image ? "exfil.image" : "exfil.link",
       category: "exfiltration",
       severity: image ? "critical" : "high",
-      span: { start: m.index!, end: m.index! + m[0].length },
+      span: { start, end },
       evidence: url.length > 90 ? `${url.slice(0, 87)}…` : url,
       why: image
         ? `An image from ${host}, which isn't an approved domain. Showing the answer would make the user's browser contact that server${carriesData ? " and hand over the data in the address" : ""}.`

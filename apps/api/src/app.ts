@@ -7,6 +7,7 @@
  * runs (and can be attacked) with no API key.
  */
 
+import { createHash, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +16,7 @@ import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 import { z } from "zod";
-import { checkRequest, checkResponse, DEFAULT_POLICY, deserialize, gullibleReply, inspect, NORTHWIND_SYSTEM, type Action, type ChatMessage, type Finding, type Model, type Policy } from "@airlock/core";
+import { checkRequest, checkResponse, DEFAULT_POLICY, deserialize, gullibleReply, inspect, NORTHWIND_SYSTEM, scrub, type Action, type ChatMessage, type Finding, type Model, type Policy } from "@airlock/core";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -65,8 +66,10 @@ export async function buildApp(opts: Options = {}) {
   let policy: Policy = structuredClone(DEFAULT_POLICY);
   const events: Event[] = [];
   const counts = { requests: 0, blocked: 0, redacted: 0, flagged: 0 };
+  // Personal data and secrets are scrubbed from everything that is logged, whatever the policy
+  // says to do with them on the way to the model.
   const log = (e: Omit<Event, "id" | "at">) => {
-    events.unshift({ ...e, id: crypto.randomUUID(), at: Date.now() });
+    events.unshift({ ...e, preview: scrub(e.preview), findings: e.findings.map((f) => ({ ...f, evidence: scrub(f.evidence) })), id: crypto.randomUUID(), at: Date.now() });
     if (events.length > 500) events.length = 500;
   };
   const upstreamName = opts.upstreamUrl ? new URL(opts.upstreamUrl).host : "demo bot";
@@ -77,10 +80,11 @@ export async function buildApp(opts: Options = {}) {
   const requireClient = async (req: FastifyRequest, reply: FastifyReply) => {
     if (!opts.clientKeys?.length) return;
     const key = req.headers.authorization?.replace(/^Bearer\s+/i, "");
-    if (!key || !opts.clientKeys.includes(key)) return reply.code(401).send({ error: { message: "Missing or invalid Airlock key.", type: "authentication_error" } });
+    if (!key || !opts.clientKeys.some((k) => sameSecret(key, k))) return reply.code(401).send({ error: { message: "Missing or invalid Airlock key.", type: "authentication_error" } });
   };
   const requireAdmin = async (req: FastifyRequest, reply: FastifyReply) => {
-    if (!opts.adminToken || req.headers["x-admin-token"] !== opts.adminToken) return reply.code(403).send({ error: "This needs the admin token (x-admin-token header)." });
+    const token = req.headers["x-admin-token"];
+    if (!opts.adminToken || typeof token !== "string" || !sameSecret(token, opts.adminToken)) return reply.code(403).send({ error: "This needs the admin token (x-admin-token header)." });
   };
 
   app.get("/api/health", async () => ({ ok: true, upstream: upstreamName, classifier: true }));
@@ -139,7 +143,8 @@ export async function buildApp(opts: Options = {}) {
   });
 
   app.get("/api/events", { preHandler: requireAdmin }, async () => ({ events: events.slice(0, 200), counts }));
-  app.get("/api/policy", async () => policy);
+  // The policy says what gets through (thresholds, allowed domains), so reading it is admin-only too.
+  app.get("/api/policy", { preHandler: requireAdmin }, async () => policy);
   app.put("/api/policy", { preHandler: requireAdmin }, async (req, reply) => {
     const body = PolicyBody.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: body.error.issues[0].message });
@@ -153,6 +158,13 @@ export async function buildApp(opts: Options = {}) {
     app.setNotFoundHandler((req, reply) => (req.method === "GET" && !req.url.startsWith("/api") && !req.url.startsWith("/v1") ? reply.sendFile("index.html") : reply.code(404).send({ error: "Not found" })));
   }
   return app;
+}
+
+/** Compares two secrets in constant time, so response timing doesn't reveal how much of a guess was right. */
+function sameSecret(given: string, expected: string): boolean {
+  const a = createHash("sha256").update(given).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
 }
 
 function completion(model: string, content: string, airlock: { request: Action; response: Action | "skipped"; findings: Finding[] }) {

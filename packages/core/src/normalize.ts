@@ -22,6 +22,18 @@ const CONFUSABLE: Record<string, string> = {
 };
 const LEET: Record<string, string> = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", $: "s" };
 
+// Pictographs, the emoji presentation selector and skin-tone modifiers, matched one code point at a time.
+const PICTO = /^(?:\p{Extended_Pictographic}|\u{FE0F}|[\u{1F3FB}-\u{1F3FF}])$/u;
+function benignInvisible(text: string, i: number): boolean {
+  const c = text[i];
+  if (c === "\uFEFF") return i === 0;
+  if (c !== "\u200D") return false;
+  const before = String.fromCodePoint(text.codePointAt(i - 1) ?? 0);
+  const prev = i >= 2 && /[\uDC00-\uDFFF]/.test(text[i - 1]) ? String.fromCodePoint(text.codePointAt(i - 2)!) : before;
+  const next = String.fromCodePoint(text.codePointAt(i + 1) ?? 0);
+  return PICTO.test(prev) && PICTO.test(next);
+}
+
 export type Trick = { kind: "invisible" | "bidi" | "tags" | "homoglyph" | "spaced" | "leet"; count: number; span?: Span; decoded?: string };
 
 export type Unmasked = {
@@ -44,12 +56,17 @@ export function unmask(input: string): Unmasked {
     tricks.push({ kind: "tags", count: tags.length, span: { start: tags[0].index!, end: tags.at(-1)!.index! + 2 }, decoded: smuggled });
     s = s.replace(TAGS, "");
   }
-  const invisible = s.match(INVISIBLE)?.length ?? 0;
-  if (invisible) {
-    const first = input.search(INVISIBLE);
-    tricks.push({ kind: "invisible", count: invisible, span: first >= 0 ? { start: first, end: first + 1 } : undefined });
-    s = s.replace(INVISIBLE, "");
+  // A byte-order mark at the very start and the joiner inside emoji sequences (👨‍👩‍👧) are normal
+  // text, not a trick. Everything else invisible counts.
+  let invisible = 0;
+  let first = -1;
+  for (const m of input.matchAll(INVISIBLE)) {
+    if (benignInvisible(input, m.index!)) continue;
+    invisible++;
+    if (first < 0) first = m.index!;
   }
+  if (invisible) tricks.push({ kind: "invisible", count: invisible, span: { start: first, end: first + 1 } });
+  s = s.replace(INVISIBLE, "");
   const bidi = s.match(BIDI)?.length ?? 0;
   if (bidi) {
     tricks.push({ kind: "bidi", count: bidi });

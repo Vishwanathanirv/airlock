@@ -4,7 +4,7 @@
  */
 
 import type { Model } from "./classifier";
-import { Vault } from "./dlp";
+import { findSensitive, Vault } from "./dlp";
 import { DEFAULT_POLICY, inspect, inspectOutput, type Policy } from "./firewall";
 import type { Action, Source, Verdict } from "./types";
 
@@ -36,7 +36,13 @@ export function checkRequest(messages: ChatMessage[], opts: { policy?: Policy; m
   const checks: RequestCheck["checks"] = [];
   let action: Action = "allow";
   const forward = messages.map((m, index) => {
-    if (m.role === "system" || m.role === "assistant") return m;
+    if (m.role === "system") return m;
+    if (m.role === "assistant") {
+      // Earlier answers were shown to the user with personal data put back. When the app sends the
+      // conversation again, that data must not reach the model in the clear.
+      const redactable = findSensitive(m.content).filter((x) => policy.actions[x.category] === "redact");
+      return redactable.length ? { ...m, content: vault.redact(m.content, redactable) } : m;
+    }
     const source: Source = m.source ?? (m.role === "tool" ? "tool" : "user");
     const v = inspect(m.content, source, policy, opts.model);
     checks.push({ ...v, index, source });
