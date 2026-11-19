@@ -9,3 +9,5 @@ playwright-report/
 *.log
 apps/web/public/classifier.json
 .cache/
+.vercel
+.env*
