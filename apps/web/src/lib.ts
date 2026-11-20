@@ -64,3 +64,16 @@ export const useLog = () =>
   );
 
 export const time = (t: number) => new Date(t).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+/** "Try it" buttons outside the split screen hand it a message to send to both sides. */
+type TryMessage = { user: string; article?: string };
+const tryListeners = new Set<(m: TryMessage) => void>();
+export function tryOnBoth(m: TryMessage) {
+  tryListeners.forEach((f) => f(m));
+}
+export function onTry(f: (m: TryMessage) => void) {
+  tryListeners.add(f);
+  return () => {
+    tryListeners.delete(f);
+  };
+}

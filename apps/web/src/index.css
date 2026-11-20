@@ -34,6 +34,8 @@
   --hold: #ffb02e;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 20px 44px -20px rgba(0, 0, 0, 0.9);
   color-scheme: dark;
+  /* Shared by both palettes before the theme switch was removed. */
+  --x-attack: #ef7d1a;
 }
 
 @theme inline {
@@ -194,6 +196,68 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sweep,
   .bubble-in {
+    animation: none;
+  }
+}
+
+/* The briefing: the card settles in, and a message rides through the two doors on a loop. */
+@keyframes settle {
+  from {
+    transform: translateY(10px) scale(0.985);
+    opacity: 0;
+  }
+}
+.briefing-card {
+  animation: settle 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@keyframes ride {
+  0% {
+    transform: translateX(0);
+    fill: var(--x-attack);
+  }
+  40% {
+    transform: translateX(118px);
+    fill: var(--x-attack);
+  }
+  55% {
+    transform: translateX(140px);
+    fill: var(--go);
+  }
+  100% {
+    transform: translateX(278px);
+    fill: var(--go);
+  }
+}
+.packet {
+  animation: ride 3.2s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+@keyframes shut {
+  0%,
+  30%,
+  60%,
+  100% {
+    transform: scaleY(1);
+  }
+  38%,
+  52% {
+    transform: scaleY(0.15);
+  }
+}
+.door {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.door-in {
+  animation: shut 3.2s ease-in-out infinite;
+}
+.door-out {
+  animation: shut 3.2s ease-in-out 1.4s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .briefing-card,
+  .packet,
+  .door-in,
+  .door-out {
     animation: none;
   }
 }

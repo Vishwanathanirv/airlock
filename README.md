@@ -22,6 +22,10 @@ Airlock handles all five in one place, in front of any model.
 
 The live demo runs entirely in your browser, on a **split screen**. **Nova**, the support bot of a made-up phone company, is deliberately gullible: it obeys any instruction it reads. Every message you send goes to two copies of Nova at once: on the left straight to the model, on the right through Airlock, with the scanner in the middle showing what Airlock saw and why it decided.
 
+On the first visit a short briefing explains the idea (the problem, the idea, why it's different) over the live split screen, with **Watch an attack get stopped** one click away. **What is Airlock?** in the header brings it back.
+
+**How it works** (header, or the `?` key) follows one message through the six stages of the real engine: unmask, decode, detect (rules plus the classifier's score against the policy's thresholds), redact, decide, and the check on the answer. Pick any attack or write your own; every stage is the shipping code running on it, and **Send it to both phones** replays it on the split screen.
+
 1. Pick an attack, like "Steal the system prompt" or "Poisoned help article".
 2. Watch it work on the left, and get stopped on the right.
 3. Open the tools drawer at the bottom (keys 1 to 4), like browser devtools: the traffic log, an X-ray lab for any text, the policy and setup code, and the measured results.

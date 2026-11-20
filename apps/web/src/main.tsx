@@ -4,7 +4,9 @@ import { BrowserRouter, Link, Route, Routes, useLocation, useNavigate } from "re
 import "@fontsource-variable/host-grotesk";
 import "@fontsource/jetbrains-mono/400.css";
 import "./index.css";
-import { time, useLog } from "./lib";
+import { Briefing, HowItWorks, useBriefing } from "./intro";
+import { time, tryOnBoth, useLog } from "./lib";
+import { preset } from "./presets";
 import { Checkpoint } from "./pages/Checkpoint";
 import { Integrate } from "./pages/Integrate";
 import { Results } from "./pages/Results";
@@ -85,36 +87,68 @@ function Shell() {
   const [height, setHeight] = useState(() => Math.round(window.innerHeight * 0.46));
   const drag = useRef<{ y: number; h: number } | null>(null);
   const acted = log.filter((e) => e.action !== "allow").length;
+  const [briefing, setBriefing] = useBriefing();
+  const [how, setHow] = useState(false);
+  const dialog = briefing || how;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (dialog || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "?") return setHow(true);
       const t = TOOLS.find((x) => x.key === e.key);
       if (t) navigate(loc.pathname === t.to ? "/" : t.to);
       if (e.key === "Escape" && tool) navigate("/");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, loc.pathname, tool]);
+  }, [navigate, loc.pathname, tool, dialog]);
 
   return (
     <div className="grid h-dvh grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto]">
-      <header className="flex items-center gap-3 border-b border-line px-4 py-2">
+      <header className="flex items-center gap-3 border-b border-line px-4 py-2" inert={dialog}>
         <Link to="/" className="flex items-center gap-2 text-[1.1rem] font-extrabold tracking-tight">
           <img src="/favicon.svg" alt="" className="h-7 w-7" />
           Airlock
         </Link>
         <span className="hidden text-sm text-muted md:inline">A firewall for LLM apps. Same chat, twice: once unprotected, once through Airlock.</span>
         <span className="flex-1" />
+        <button className="btn h-8 px-3 text-[13px]" onClick={() => setBriefing(true)}>
+          What is Airlock?
+        </button>
+        <button className="btn h-8 px-3 text-[13px]" onClick={() => setHow(true)} title="How it works (?)">
+          How it works
+        </button>
       </header>
+      {briefing && (
+        <Briefing
+          onClose={() => setBriefing(false)}
+          onTry={() => {
+            setBriefing(false);
+            tryOnBoth(preset("Steal the system prompt"));
+          }}
+          onHow={() => {
+            setBriefing(false);
+            setHow(true);
+          }}
+        />
+      )}
+      {how && (
+        <HowItWorks
+          onClose={() => setHow(false)}
+          onSend={(m) => {
+            setHow(false);
+            tryOnBoth(m);
+          }}
+        />
+      )}
 
-      <main className="min-h-0">
+      <main className="min-h-0" inert={dialog}>
         <Checkpoint />
       </main>
 
       {/* The tools drawer */}
-      <section className="flex min-w-0 flex-col border-t border-line bg-panel" style={{ height: tool ? height : undefined }} aria-label="Tools">
+      <section className="flex min-w-0 flex-col border-t border-line bg-panel" style={{ height: tool ? height : undefined }} aria-label="Tools" inert={dialog}>
         {tool && (
           <div
             className="flex h-2.5 cursor-row-resize touch-none items-center justify-center"
