@@ -77,31 +77,10 @@ function Log() {
   );
 }
 
-function useTheme(): [string, () => void] {
-  const [t, setT] = useState(() => {
-    try {
-      return localStorage.getItem("airlock-theme") ?? "system";
-    } catch {
-      return "system";
-    }
-  });
-  useEffect(() => {
-    if (t === "system") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t;
-    try {
-      localStorage.setItem("airlock-theme", t);
-    } catch {
-      /* private mode */
-    }
-  }, [t]);
-  return [t, () => setT(t === "system" ? "dark" : t === "dark" ? "light" : "system")];
-}
-
 function Shell() {
   const loc = useLocation();
   const navigate = useNavigate();
   const log = useLog();
-  const [theme, cycle] = useTheme();
   const tool = TOOLS.find((t) => t.to === loc.pathname);
   const [height, setHeight] = useState(() => Math.round(window.innerHeight * 0.46));
   const drag = useRef<{ y: number; h: number } | null>(null);
@@ -128,12 +107,6 @@ function Shell() {
         </Link>
         <span className="hidden text-sm text-muted md:inline">A firewall for LLM apps. Same chat, twice: once unprotected, once through Airlock.</span>
         <span className="flex-1" />
-        <button className="btn h-8 px-3 text-[13px]" onClick={cycle} title="Switch theme">
-          {theme === "system" ? "Auto" : theme === "dark" ? "Dark" : "Light"}
-        </button>
-        <a href="https://github.com/Vishwanathanirv/llm-firewall" className="hidden text-sm font-semibold text-muted hover:text-ink sm:block">
-          Source
-        </a>
       </header>
 
       <main className="min-h-0">
