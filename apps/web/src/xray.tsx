@@ -54,7 +54,7 @@ export function Xray({ text, findings, className = "" }: { text: string; finding
         i += 2;
       }
       out.push(
-        <span key={key++} className="x-hidden px-0.5 italic" title="Invisible tag characters, decoded">
+        <span key={key++} className="x-hidden px-0.5 outline-dashed outline-1 outline-[var(--x-hidden)]" title="Invisible tag characters, decoded">
           ⟨invisible: {decoded}⟩
         </span>,
       );
