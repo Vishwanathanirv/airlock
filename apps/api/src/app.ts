@@ -33,6 +33,8 @@ export type Options = {
   model?: Model;
   fetchImpl?: typeof fetch;
   webDir?: string;
+  /** Chat completions allowed per client key (or IP when keys are off) per minute. Each one may cost upstream credits. */
+  chatPerMinute?: number;
 };
 
 const Message = z.object({ role: z.enum(["system", "user", "assistant", "tool"]), content: z.string().max(200_000), airlock_source: z.enum(["user", "context", "tool"]).optional() });
@@ -77,6 +79,15 @@ export async function buildApp(opts: Options = {}) {
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(rateLimit, { max: 240, timeWindow: "1 minute" });
 
+  // Paid upstream calls get their own, tighter budget per client key, so one leaked or runaway key
+  // can't drain the upstream account. Admin routes are limited hard to stop token guessing.
+  const clientId = (req: FastifyRequest) => {
+    const key = req.headers.authorization?.replace(/^Bearers+/i, "");
+    return key ? `key:${createHash("sha256").update(key).digest("hex").slice(0, 16)}` : `ip:${req.ip}`;
+  };
+  const chatLimit = { rateLimit: { max: opts.chatPerMinute ?? 60, timeWindow: "1 minute", keyGenerator: clientId } };
+  const adminLimit = { rateLimit: { max: 20, timeWindow: "1 minute" } };
+
   const requireClient = async (req: FastifyRequest, reply: FastifyReply) => {
     if (!opts.clientKeys?.length) return;
     const key = req.headers.authorization?.replace(/^Bearer\s+/i, "");
@@ -96,7 +107,7 @@ export async function buildApp(opts: Options = {}) {
     return verdict;
   });
 
-  app.post("/v1/chat/completions", { preHandler: requireClient }, async (req, reply) => {
+  app.post("/v1/chat/completions", { preHandler: requireClient, config: chatLimit }, async (req, reply) => {
     const body = Completion.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: { message: body.error.issues[0].message, type: "invalid_request_error" } });
     counts.requests++;
@@ -142,10 +153,10 @@ export async function buildApp(opts: Options = {}) {
     return completion(body.data.model, out.text, { request: check.action, response: out.action, findings: [...inFindings, ...out.findings] });
   });
 
-  app.get("/api/events", { preHandler: requireAdmin }, async () => ({ events: events.slice(0, 200), counts }));
+  app.get("/api/events", { preHandler: requireAdmin, config: adminLimit }, async () => ({ events: events.slice(0, 200), counts }));
   // The policy says what gets through (thresholds, allowed domains), so reading it is admin-only too.
-  app.get("/api/policy", { preHandler: requireAdmin }, async () => policy);
-  app.put("/api/policy", { preHandler: requireAdmin }, async (req, reply) => {
+  app.get("/api/policy", { preHandler: requireAdmin, config: adminLimit }, async () => policy);
+  app.put("/api/policy", { preHandler: requireAdmin, config: adminLimit }, async (req, reply) => {
     const body = PolicyBody.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: body.error.issues[0].message });
     policy = { ...policy, ...body.data, actions: { ...policy.actions, ...(body.data.actions ?? {}) } };

@@ -109,3 +109,22 @@ describe("the event log", () => {
     expect(JSON.stringify(ev.events)).not.toContain("4111 1111 1111 1111");
   });
 });
+
+describe("rate limits", () => {
+  it("caps chat completions per client key, separately for each key", async () => {
+    const app = await buildApp({ clientKeys: ["a", "b"], chatPerMinute: 2 });
+    const hi = [{ role: "user", content: "How much is roaming?" }];
+    expect((await chat(app, hi, { authorization: "Bearer a" })).statusCode).toBe(200);
+    expect((await chat(app, hi, { authorization: "Bearer a" })).statusCode).toBe(200);
+    expect((await chat(app, hi, { authorization: "Bearer a" })).statusCode).toBe(429);
+    expect((await chat(app, hi, { authorization: "Bearer b" })).statusCode).toBe(200);
+  });
+
+  it("limits admin token guesses", async () => {
+    const app = await buildApp({ adminToken: "admin" });
+    const codes: number[] = [];
+    for (let i = 0; i < 21; i++) codes.push((await app.inject({ url: "/api/events", headers: { "x-admin-token": `guess${i}` } })).statusCode);
+    expect(codes.slice(0, 20).every((c) => c === 403)).toBe(true);
+    expect(codes[20]).toBe(429);
+  });
+});

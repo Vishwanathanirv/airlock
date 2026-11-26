@@ -18,13 +18,9 @@ An LLM reads instructions and data in the same stream of text, so anything it re
 
 Airlock handles all five in one place, in front of any model.
 
-## Try it
+## The demo
 
 The live demo runs entirely in your browser, on a **split screen**. **Nova**, the support bot of a made-up phone company, is deliberately gullible: it obeys any instruction it reads. Every message you send goes to two copies of Nova at once: on the left straight to the model, on the right through Airlock, with the scanner in the middle showing what Airlock saw and why it decided.
-
-On the first visit a short briefing explains the idea (the problem, the idea, why it's different) over the live split screen, with **Watch an attack get stopped** one click away. **What is Airlock?** in the header brings it back.
-
-**How it works** (header, or the `?` key) follows one message through the six stages of the real engine: unmask, decode, detect (rules plus the classifier's score against the policy's thresholds), redact, decide, and the check on the answer. Pick any attack or write your own; every stage is the shipping code running on it, and **Send it to both phones** replays it on the split screen.
 
 1. Pick an attack, like "Steal the system prompt" or "Poisoned help article".
 2. Watch it work on the left, and get stopped on the right.
@@ -44,7 +40,7 @@ Personal data is swapped for placeholders on the way in and put back on the way 
 
 From `npm run bench`, on the held-out **test half** of each public dataset. Every file is pinned to a commit and checked by SHA-256, and every number below is computed from those files. Nothing was tuned on the test halves. A message counts as caught when Airlock blocks it or flags an attack; redacting personal data doesn't count.
 
-**Before**: the original classifier, trained only on synthetic templates (commit `261f139`). **After**: the classifier is also trained on real data from the *dev* halves (commit `6d071c6`). Both use the same rules and the default policy.
+**Before**: the original classifier, trained only on synthetic templates (commit `261f139`). **After**: the classifier is also trained on real data from the dev halves (commit `6d071c6`). Both use the same rules and the default policy.
 
 | Dataset | Licence | Test rows (attacks / benign) | Precision | Recall | F1 | False-positive rate |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -80,7 +76,7 @@ What this shows, plainly:
 
 ### How the split and the training work
 
-- Each dataset is split in half (dev / test) by a fixed hash. JailbreakHub jailbreaks are split by the dataset's own *community* id, so variants of the same jailbreak never end up on both sides.
+- Each dataset is split in half (dev / test) by a fixed hash. JailbreakHub jailbreaks are split by the dataset's own community id, so variants of the same jailbreak never end up on both sides.
 - Training (`npm run train`) uses the synthetic corpus, the JailbreakHub dev half (MIT), and 12,000 [Self-Instruct](https://github.com/yizhongw/self-instruct) instructions (Apache-2.0) as everyday text. Self-Instruct instructions that also appear in Alpaca (56 rows) are removed first. JailbreakHub "regular" prompts that the rules flag as injections are left out, not taught as benign.
 - Settings were checked with `npm run tune`, which splits the dev half again (80/20) and never reads the test half. One idea that didn't help on that validation split (a rule for stacked jailbreak phrases) was dropped, not shipped.
 - `npm run bench -- --errors=dev` lists mistakes on the dev half. It refuses to print test-half mistakes.
@@ -113,7 +109,7 @@ Rules are exact but miss paraphrases. The classifier generalises but can't read 
 
 ![Results page](docs/screenshots/results.png)
 
-## How it works
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -144,7 +140,7 @@ Requires Node 22.13+.
 ```bash
 npm install
 npm run dev          # web on :5173, API on :8080
-npm test             # 36 unit and API tests
+npm test             # 38 unit and API tests
 npm run test:e2e     # browser tests (Playwright)
 npm run bench        # real public datasets: precision, recall, F1, false-positive rate
 npm run train && npm run evaluate   # rebuild the model and the synthetic report
@@ -178,6 +174,7 @@ await client.chat.completions.create({
 - Works with OpenAI, Gemini's OpenAI-compatible endpoint, Groq, a local Ollama, or anything with the same API. Without `UPSTREAM_URL`, Airlock answers with the demo bot.
 - Your provider key stays on the Airlock server. Your app only holds an Airlock key.
 - A blocked request gets a polite refusal as a normal reply, so nothing in your app breaks.
+- Chat completions are limited to 60 a minute per Airlock key (set `chatPerMinute` in `buildApp`), admin routes to 20 a minute per IP, everything else to 240.
 - Each response has an `airlock` field and `x-airlock-request` / `x-airlock-response` headers with what was found.
 
 | Endpoint | What it does |

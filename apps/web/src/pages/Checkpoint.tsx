@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { checkRequest, checkResponse, gullibleReply, NORTHWIND_SYSTEM, type Action, type ChatMessage, type Finding } from "@airlock/core";
-import { onTry, record, useModel, usePolicy } from "../lib";
+import { record, useModel, usePolicy } from "../lib";
 import { PRESETS, ROAMING_ARTICLE, type Preset } from "../presets";
 import { Findings, Gate, Legend, Xray } from "../xray";
 
@@ -124,19 +124,6 @@ export function Checkpoint() {
     void send(p.user, art);
   }
 
-  // "Try it" from the briefing or the walkthrough: send once the classifier has loaded, show the
-  // protected side on phones, and keep the latest request if several arrive while busy.
-  const [pending, setPending] = useState<{ user: string; article?: string } | null>(null);
-  useEffect(() => onTry((m) => setPending(m)), []);
-  useEffect(() => {
-    if (!pending || !model || busy) return;
-    setPending(null);
-    setSide("guarded");
-    const art = pending.article ?? ROAMING_ARTICLE;
-    setArticle(art);
-    void send(pending.user, art);
-    // send() reads the latest state itself; only a new request or a free model should trigger this.
-  }, [pending, model, busy]);
 
   const last = turns.at(-1);
   return (
@@ -243,11 +230,19 @@ export function Checkpoint() {
           <button type="button" className={`btn shrink-0 ${editArticle ? "border-ink" : ""}`} onClick={() => setEditArticle(!editArticle)} aria-expanded={editArticle} title="The help article Nova reads before answering">
             Article
           </button>
-          <input className="field" placeholder={error ?? (model ? "Ask Nova something, or write your own attack" : "Loading the scanner…")} value={text} onChange={(e) => setText(e.target.value)} aria-label="Message to Nova" />
+          <input className="field" placeholder={error ? "Scanner unavailable" : model ? "Ask Nova something, or write your own attack" : "Loading the scanner…"} value={text} onChange={(e) => setText(e.target.value)} aria-label="Message to Nova" />
           <button className="btn btn-sign shrink-0" disabled={busy || !text.trim() || !model}>
             Send to both
           </button>
         </form>
+        {error && (
+          <p role="alert" className="mt-2 text-[13px] text-[var(--stop)]">
+            The scanner could not load ({error}).{" "}
+            <button type="button" className="font-semibold underline underline-offset-2" onClick={() => location.reload()}>
+              Reload
+            </button>
+          </p>
+        )}
         {editArticle && (
           <label className="mt-2 block">
             <span className="text-xs font-semibold text-muted">The help article Nova looks up before answering. Edit it to plant your own attack.</span>
