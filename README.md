@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/kon.svg" width="100%" alt="Airlock. A plush orange lion in headphones and sunglasses panics, changes into a robed swordsman and slashes the hollows breaking out of the sky.">
-</p>
-
 # Airlock · A firewall for LLM apps
 
 **Live demo: [llm-firewall-liard.vercel.app](https://llm-firewall-liard.vercel.app)** (runs in the browser, no API keys needed)
