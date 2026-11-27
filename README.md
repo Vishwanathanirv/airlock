@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/kon.svg" width="100%" alt="Airlock: A firewall for LLM apps. A plush lion in a black robe, headphones and sunglasses.">
+</p>
+
 # Airlock · A firewall for LLM apps
 
 **Live demo: [llm-firewall-liard.vercel.app](https://llm-firewall-liard.vercel.app)** (runs in the browser, no API keys needed)
