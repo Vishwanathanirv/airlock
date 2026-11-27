@@ -18,6 +18,7 @@ const app = await buildApp({
   upstreamKey: process.env.UPSTREAM_API_KEY,
   clientKeys: list(process.env.AIRLOCK_KEYS),
   adminToken: process.env.ADMIN_TOKEN,
+  trustProxy: Number(process.env.TRUST_PROXY ?? 0),
   webDir: existsSync(webDir) ? webDir : undefined,
 });
 await app.listen({ port, host });

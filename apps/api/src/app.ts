@@ -33,6 +33,8 @@ export type Options = {
   model?: Model;
   fetchImpl?: typeof fetch;
   webDir?: string;
+  /** Proxy hops to trust for the client address (X-Forwarded-For). 0 or unset trusts none, so the header can't be spoofed. */
+  trustProxy?: number;
   /** Chat completions allowed per client key (or IP when keys are off) per minute. Each one may cost upstream credits. */
   chatPerMinute?: number;
 };
@@ -62,7 +64,7 @@ export function loadModel(): Model {
 }
 
 export async function buildApp(opts: Options = {}) {
-  const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 2 * 1024 * 1024 });
+  const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 2 * 1024 * 1024, trustProxy: trustHops(opts.trustProxy) });
   const model = opts.model ?? loadModel();
   const doFetch = opts.fetchImpl ?? fetch;
   let policy: Policy = structuredClone(DEFAULT_POLICY);
@@ -81,9 +83,12 @@ export async function buildApp(opts: Options = {}) {
 
   // Paid upstream calls get their own, tighter budget per client key, so one leaked or runaway key
   // can't drain the upstream account. Admin routes are limited hard to stop token guessing.
+  // Only a configured key earns its own bucket: an unknown or made-up Authorization header falls
+  // back to the client address, so rotating headers can't mint fresh budgets.
   const clientId = (req: FastifyRequest) => {
-    const key = req.headers.authorization?.replace(/^Bearers+/i, "");
-    return key ? `key:${createHash("sha256").update(key).digest("hex").slice(0, 16)}` : `ip:${req.ip}`;
+    const key = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+    const known = key && opts.clientKeys?.some((k) => sameSecret(key, k));
+    return known ? `key:${createHash("sha256").update(key).digest("hex").slice(0, 16)}` : `ip:${req.ip}`;
   };
   const chatLimit = { rateLimit: { max: opts.chatPerMinute ?? 60, timeWindow: "1 minute", keyGenerator: clientId } };
   const adminLimit = { rateLimit: { max: 20, timeWindow: "1 minute" } };
@@ -169,6 +174,12 @@ export async function buildApp(opts: Options = {}) {
     app.setNotFoundHandler((req, reply) => (req.method === "GET" && !req.url.startsWith("/api") && !req.url.startsWith("/v1") ? reply.sendFile("index.html") : reply.code(404).send({ error: "Not found" })));
   }
   return app;
+}
+
+/** Trust exactly n proxy hops for X-Forwarded-For; 0 trusts none. */
+function trustHops(n = 0): false | ((address: string, hop: number) => boolean) {
+  const hops = Math.max(0, Math.floor(n));
+  return hops > 0 ? (_address, hop) => hop < hops : false;
 }
 
 /** Compares two secrets in constant time, so response timing doesn't reveal how much of a guess was right. */

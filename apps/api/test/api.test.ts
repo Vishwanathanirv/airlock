@@ -120,6 +120,21 @@ describe("rate limits", () => {
     expect((await chat(app, hi, { authorization: "Bearer b" })).statusCode).toBe(200);
   });
 
+  it("gives made-up keys no budget of their own", async () => {
+    const app = await buildApp({ chatPerMinute: 2 });
+    const hi = [{ role: "user", content: "How much is roaming?" }];
+    const codes: number[] = [];
+    for (let i = 0; i < 3; i++) codes.push((await chat(app, hi, { authorization: `Bearer made-up-${i}` })).statusCode);
+    expect(codes).toEqual([200, 200, 429]);
+  });
+
+  it("ignores X-Forwarded-For unless a proxy is trusted", async () => {
+    const app = await buildApp({ chatPerMinute: 1 });
+    const hi = [{ role: "user", content: "How much is roaming?" }];
+    expect((await chat(app, hi, { "x-forwarded-for": "1.1.1.1" })).statusCode).toBe(200);
+    expect((await chat(app, hi, { "x-forwarded-for": "2.2.2.2" })).statusCode).toBe(429);
+  });
+
   it("limits admin token guesses", async () => {
     const app = await buildApp({ adminToken: "admin" });
     const codes: number[] = [];

@@ -174,7 +174,7 @@ await client.chat.completions.create({
 - Works with OpenAI, Gemini's OpenAI-compatible endpoint, Groq, a local Ollama, or anything with the same API. Without `UPSTREAM_URL`, Airlock answers with the demo bot.
 - Your provider key stays on the Airlock server. Your app only holds an Airlock key.
 - A blocked request gets a polite refusal as a normal reply, so nothing in your app breaks.
-- Chat completions are limited to 60 a minute per Airlock key (set `chatPerMinute` in `buildApp`), admin routes to 20 a minute per IP, everything else to 240.
+- Chat completions are limited to 60 a minute per configured Airlock key (unknown keys share their address's budget; set `chatPerMinute` in `buildApp`), admin routes to 20 a minute per IP, everything else to 240. Behind a load balancer set `TRUST_PROXY` to the number of proxies so limits apply per client, not per proxy; it is 0 by default, so `X-Forwarded-For` can't be spoofed.
 - Each response has an `airlock` field and `x-airlock-request` / `x-airlock-response` headers with what was found.
 
 | Endpoint | What it does |
